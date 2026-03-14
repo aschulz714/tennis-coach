@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: #0a0a0a;
+  color: #ededed;
+}
+
+/* Prevent pull-to-refresh on mobile for PWA feel */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* Better mobile input styling */
+input, textarea, select {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
