@@ -6,12 +6,15 @@ import { getSessions } from '@/lib/storage';
 import SessionForm from '@/components/SessionForm';
 import SessionList from '@/components/SessionList';
 import CoachChat from '@/components/CoachChat';
+import Schedule from '@/components/Schedule';
+import StatsView from '@/components/StatsView';
 
-type Tab = 'log' | 'history' | 'coach';
+type Tab = 'log' | 'history' | 'coach' | 'schedule';
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>('log');
   const [sessions, setSessions] = useState<TennisSession[]>([]);
+  const [showStats, setShowStats] = useState(false);
 
   const refresh = useCallback(() => {
     setSessions(getSessions());
@@ -62,9 +65,41 @@ export default function Home() {
           />
         )}
         {tab === 'history' && (
-          <SessionList sessions={sessions} onDelete={refresh} />
+          <>
+            {/* List / Stats toggle */}
+            <div className="flex rounded-lg overflow-hidden border border-neutral-700 mb-3">
+              <button
+                type="button"
+                onClick={() => setShowStats(false)}
+                className={`flex-1 py-1.5 text-xs font-medium transition ${
+                  !showStats
+                    ? 'bg-green-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400'
+                }`}
+              >
+                History
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowStats(true)}
+                className={`flex-1 py-1.5 text-xs font-medium transition ${
+                  showStats
+                    ? 'bg-green-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400'
+                }`}
+              >
+                Stats
+              </button>
+            </div>
+            {showStats ? (
+              <StatsView sessions={sessions} />
+            ) : (
+              <SessionList sessions={sessions} onDelete={refresh} />
+            )}
+          </>
         )}
         {tab === 'coach' && <CoachChat />}
+        {tab === 'schedule' && <Schedule />}
       </main>
 
       {/* Bottom Navigation */}
@@ -72,6 +107,7 @@ export default function Home() {
         {([
           { key: 'log' as Tab, label: 'Log', icon: '+' },
           { key: 'history' as Tab, label: 'History', icon: '\u2630' },
+          { key: 'schedule' as Tab, label: 'Schedule', icon: '\uD83D\uDCC5' },
           { key: 'coach' as Tab, label: 'Coach', icon: '\uD83D\uDCAC' },
         ]).map(({ key, label, icon }) => (
           <button

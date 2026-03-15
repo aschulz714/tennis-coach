@@ -33,6 +33,22 @@ export default function SessionList({ sessions, onDelete }: Props) {
     });
   }
 
+  function formatScore(session: TennisSession): string {
+    if (session.sets && session.sets.length > 0) {
+      const nonEmpty = session.sets.filter((s) => s.yours > 0 || s.opponent > 0);
+      return nonEmpty
+        .map((s, i) => {
+          // Third set is a match tiebreak — display in brackets
+          if (i === 2 || (nonEmpty.length === 3 && i === nonEmpty.length - 1)) {
+            return `[${s.yours}-${s.opponent}]`;
+          }
+          return `${s.yours}-${s.opponent}`;
+        })
+        .join(', ');
+    }
+    return session.score || '';
+  }
+
   return (
     <div className="space-y-3">
       {sessions.map((session) => (
@@ -73,16 +89,49 @@ export default function SessionList({ sessions, onDelete }: Props) {
           </div>
 
           {session.type === 'match' && (
-            <div className="text-sm mb-1">
-              {session.opponent && (
-                <span className="text-neutral-300">
-                  vs {session.opponent}{' '}
-                </span>
-              )}
-              {session.score && (
-                <span className="text-neutral-400">{session.score}</span>
-              )}
-            </div>
+            <>
+              <div className="text-sm mb-1">
+                {session.opponent && (
+                  <span className="text-neutral-300">
+                    vs {session.opponent}{' '}
+                  </span>
+                )}
+                {formatScore(session) && (
+                  <span className="text-neutral-400">{formatScore(session)}</span>
+                )}
+              </div>
+              {/* Match metadata */}
+              <div className="flex flex-wrap gap-1.5 mb-1">
+                {session.team && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-xs ${
+                      session.team === '4.0 Verma'
+                        ? 'bg-blue-900/50 text-blue-400'
+                        : session.team === '4.5 Dhindsa'
+                        ? 'bg-purple-900/50 text-purple-400'
+                        : 'bg-neutral-700 text-neutral-400'
+                    }`}
+                  >
+                    {session.team}
+                  </span>
+                )}
+                {session.matchFormat && (
+                  <span className="px-1.5 py-0.5 bg-neutral-700 rounded text-xs text-neutral-400">
+                    {session.matchFormat}
+                  </span>
+                )}
+                {session.surface && (
+                  <span className="px-1.5 py-0.5 bg-neutral-700 rounded text-xs text-neutral-400">
+                    {session.surface}
+                  </span>
+                )}
+                {session.doublesPartner && (
+                  <span className="px-1.5 py-0.5 bg-neutral-700 rounded text-xs text-neutral-400">
+                    w/ {session.doublesPartner}
+                  </span>
+                )}
+              </div>
+            </>
           )}
 
           {session.drills && session.drills.length > 0 && (

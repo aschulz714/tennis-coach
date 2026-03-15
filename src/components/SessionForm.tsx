@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { TennisSession, SessionType, MatchResult } from '@/lib/types';
+import {
+  TennisSession,
+  SessionType,
+  MatchResult,
+  SetScore,
+  Surface,
+  MatchFormat,
+  Team,
+} from '@/lib/types';
 import { saveSession } from '@/lib/storage';
 
 const COMMON_DRILLS = [
@@ -16,19 +24,32 @@ const COMMON_DRILLS = [
   'Conditioning',
 ];
 
+const SURFACES: Surface[] = ['Hard', 'Clay', 'Indoor', 'Grass'];
+const TEAMS: Team[] = ['4.0 Verma', '4.5 Dhindsa', 'Other/Pickup'];
+
 interface Props {
   onSaved: () => void;
 }
 
 export default function SessionForm({ onSaved }: Props) {
-  const [type, setType] = useState<SessionType>('practice');
+  const [type, setType] = useState<SessionType>('match');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [duration, setDuration] = useState(60);
   const [notes, setNotes] = useState('');
   const [drills, setDrills] = useState<string[]>([]);
   const [opponent, setOpponent] = useState('');
-  const [score, setScore] = useState('');
   const [result, setResult] = useState<MatchResult>('win');
+
+  // New match fields
+  const [sets, setSets] = useState<SetScore[]>([
+    { yours: 0, opponent: 0 },
+    { yours: 0, opponent: 0 },
+  ]);
+  const [showSet3, setShowSet3] = useState(false);
+  const [doublesPartner, setDoublesPartner] = useState('');
+  const [surface, setSurface] = useState<Surface>('Hard');
+  const [team, setTeam] = useState<Team>('4.0 Verma');
+  const [matchFormat, setMatchFormat] = useState<MatchFormat>('Doubles');
 
   function toggleDrill(drill: string) {
     setDrills((prev) =>
@@ -36,8 +57,31 @@ export default function SessionForm({ onSaved }: Props) {
     );
   }
 
+  function updateSet(index: number, field: 'yours' | 'opponent', value: number) {
+    setSets((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  }
+
+  function formatScoreString(): string {
+    const activeSets = showSet3 ? sets.slice(0, 3) : sets.slice(0, 2);
+    return activeSets
+      .filter((s) => s.yours > 0 || s.opponent > 0)
+      .map((s, i) => {
+        if (i === 2) return `[${s.yours}-${s.opponent}]`;
+        return `${s.yours}-${s.opponent}`;
+      })
+      .join(', ');
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const activeSets = showSet3
+      ? [...sets.slice(0, 2), sets[2] || { yours: 0, opponent: 0 }]
+      : sets.slice(0, 2);
 
     const session: TennisSession = {
       id: crypto.randomUUID(),
@@ -45,7 +89,18 @@ export default function SessionForm({ onSaved }: Props) {
       date,
       durationMinutes: duration,
       notes,
-      ...(type === 'practice' ? { drills } : { opponent, score, result }),
+      ...(type === 'practice'
+        ? { drills }
+        : {
+            opponent,
+            score: formatScoreString(),
+            result,
+            sets: activeSets,
+            doublesPartner: matchFormat === 'Doubles' ? doublesPartner : undefined,
+            surface,
+            team,
+            matchFormat,
+          }),
       createdAt: new Date().toISOString(),
     };
 
@@ -56,7 +111,12 @@ export default function SessionForm({ onSaved }: Props) {
     setNotes('');
     setDrills([]);
     setOpponent('');
-    setScore('');
+    setSets([
+      { yours: 0, opponent: 0 },
+      { yours: 0, opponent: 0 },
+    ]);
+    setShowSet3(false);
+    setDoublesPartner('');
   }
 
   return (
@@ -135,13 +195,78 @@ export default function SessionForm({ onSaved }: Props) {
         </div>
       )}
 
-      {/* Match: Opponent, Score, Result */}
+      {/* Match Fields */}
       {type === 'match' && (
         <>
+          {/* Match Format + Team */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">Format</label>
+              <div className="flex rounded-lg overflow-hidden border border-neutral-700">
+                <button
+                  type="button"
+                  onClick={() => setMatchFormat('Doubles')}
+                  className={`flex-1 py-2 text-xs font-medium ${
+                    matchFormat === 'Doubles'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  Doubles
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMatchFormat('Singles')}
+                  className={`flex-1 py-2 text-xs font-medium ${
+                    matchFormat === 'Singles'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  Singles
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">Team</label>
+              <select
+                value={team}
+                onChange={(e) => setTeam(e.target.value as Team)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
+              >
+                {TEAMS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Surface */}
           <div>
-            <label className="block text-xs text-neutral-400 mb-1">
-              Opponent
-            </label>
+            <label className="block text-xs text-neutral-400 mb-1">Surface</label>
+            <div className="flex gap-2">
+              {SURFACES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSurface(s)}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition ${
+                    surface === s
+                      ? 'bg-green-600 text-white'
+                      : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Opponent */}
+          <div>
+            <label className="block text-xs text-neutral-400 mb-1">Opponent</label>
             <input
               type="text"
               value={opponent}
@@ -150,47 +275,130 @@ export default function SessionForm({ onSaved }: Props) {
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* Doubles Partner */}
+          {matchFormat === 'Doubles' && (
             <div>
               <label className="block text-xs text-neutral-400 mb-1">
-                Score
+                Doubles Partner
               </label>
               <input
                 type="text"
-                value={score}
-                onChange={(e) => setScore(e.target.value)}
-                placeholder="6-4, 3-6, 7-5"
+                value={doublesPartner}
+                onChange={(e) => setDoublesPartner(e.target.value)}
+                placeholder="Your partner's name"
                 className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label className="block text-xs text-neutral-400 mb-1">
-                Result
-              </label>
-              <div className="flex rounded-lg overflow-hidden border border-neutral-700">
-                <button
-                  type="button"
-                  onClick={() => setResult('win')}
-                  className={`flex-1 py-2 text-sm font-medium ${
-                    result === 'win'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-neutral-800 text-neutral-400'
-                  }`}
-                >
-                  Win
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setResult('loss')}
-                  className={`flex-1 py-2 text-sm font-medium ${
-                    result === 'loss'
-                      ? 'bg-red-600 text-white'
-                      : 'bg-neutral-800 text-neutral-400'
-                  }`}
-                >
-                  Loss
-                </button>
-              </div>
+          )}
+
+          {/* Per-Set Scores */}
+          <div>
+            <label className="block text-xs text-neutral-400 mb-2">Score</label>
+            <div className="space-y-2">
+              {[0, 1].map((setIdx) => (
+                <div key={setIdx} className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-500 w-10">
+                    Set {setIdx + 1}
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={sets[setIdx]?.yours ?? 0}
+                    onChange={(e) =>
+                      updateSet(setIdx, 'yours', Number(e.target.value))
+                    }
+                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                    placeholder="You"
+                  />
+                  <span className="text-neutral-500 text-xs">-</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={sets[setIdx]?.opponent ?? 0}
+                    onChange={(e) =>
+                      updateSet(setIdx, 'opponent', Number(e.target.value))
+                    }
+                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                    placeholder="Opp"
+                  />
+                </div>
+              ))}
+
+              {showSet3 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-500 w-10">TB</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={15}
+                    value={sets[2]?.yours ?? 0}
+                    onChange={(e) =>
+                      updateSet(2, 'yours', Number(e.target.value))
+                    }
+                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                  />
+                  <span className="text-neutral-500 text-xs">-</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={15}
+                    value={sets[2]?.opponent ?? 0}
+                    onChange={(e) =>
+                      updateSet(2, 'opponent', Number(e.target.value))
+                    }
+                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                  />
+                  <span className="text-xs text-neutral-600">(to 10)</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!showSet3) {
+                    setSets((prev) => [
+                      ...prev.slice(0, 2),
+                      { yours: 0, opponent: 0 },
+                    ]);
+                  }
+                  setShowSet3(!showSet3);
+                }}
+                className="text-xs text-green-400 hover:text-green-300"
+              >
+                {showSet3 ? 'Remove Match Tiebreak' : '+ Match Tiebreak (1-1 split)'}
+              </button>
+            </div>
+          </div>
+
+          {/* Result */}
+          <div>
+            <label className="block text-xs text-neutral-400 mb-1">Result</label>
+            <div className="flex rounded-lg overflow-hidden border border-neutral-700">
+              <button
+                type="button"
+                onClick={() => setResult('win')}
+                className={`flex-1 py-2 text-sm font-medium ${
+                  result === 'win'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400'
+                }`}
+              >
+                Win
+              </button>
+              <button
+                type="button"
+                onClick={() => setResult('loss')}
+                className={`flex-1 py-2 text-sm font-medium ${
+                  result === 'loss'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400'
+                }`}
+              >
+                Loss
+              </button>
             </div>
           </div>
         </>
