@@ -24,7 +24,7 @@ const COMMON_DRILLS = [
   'Conditioning',
 ];
 
-const SURFACES: Surface[] = ['Hard', 'Clay', 'Indoor', 'Grass'];
+const SURFACES: Surface[] = ['Indoor', 'Outdoor'];
 const TEAMS: Team[] = ['4.0 Verma', '4.5 Dhindsa', 'Other/Pickup'];
 
 interface Props {
@@ -47,7 +47,7 @@ export default function SessionForm({ onSaved }: Props) {
   ]);
   const [showSet3, setShowSet3] = useState(false);
   const [doublesPartner, setDoublesPartner] = useState('');
-  const [surface, setSurface] = useState<Surface>('Hard');
+  const [surface, setSurface] = useState<Surface>('Indoor');
   const [team, setTeam] = useState<Team>('4.0 Verma');
   const [matchFormat, setMatchFormat] = useState<MatchFormat>('Doubles');
 
@@ -148,8 +148,8 @@ export default function SessionForm({ onSaved }: Props) {
       </div>
 
       {/* Date & Duration */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
+      <div className="flex gap-2">
+        <div className="flex-1">
           <label className="block text-xs text-neutral-400 mb-1">Date</label>
           <input
             type="date"
@@ -158,16 +158,15 @@ export default function SessionForm({ onSaved }: Props) {
             className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 text-sm"
           />
         </div>
-        <div>
-          <label className="block text-xs text-neutral-400 mb-1">
-            Duration (min)
-          </label>
+        <div className="w-20 shrink-0">
+          <label className="block text-xs text-neutral-400 mb-1">Min</label>
           <input
             type="number"
+            inputMode="numeric"
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
             min={1}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 text-sm"
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 text-sm text-center"
           />
         </div>
       </div>
@@ -245,17 +244,17 @@ export default function SessionForm({ onSaved }: Props) {
 
           {/* Surface */}
           <div>
-            <label className="block text-xs text-neutral-400 mb-1">Surface</label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <label className="block text-xs text-neutral-400 mb-1">Court</label>
+            <div className="flex rounded-lg overflow-hidden border border-neutral-700">
               {SURFACES.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSurface(s)}
-                  className={`py-1.5 text-xs font-medium rounded-lg transition ${
+                  className={`flex-1 py-1.5 text-xs font-medium ${
                     surface === s
                       ? 'bg-green-600 text-white'
-                      : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      : 'bg-neutral-800 text-neutral-400'
                   }`}
                 >
                   {s}

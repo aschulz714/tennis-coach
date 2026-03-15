@@ -2,7 +2,7 @@ export type SessionType = 'practice' | 'match';
 
 export type MatchResult = 'win' | 'loss';
 
-export type Surface = 'Hard' | 'Clay' | 'Indoor' | 'Grass';
+export type Surface = 'Indoor' | 'Outdoor' | 'Hard' | 'Clay' | 'Grass';
 
 export type MatchFormat = 'Singles' | 'Doubles';
 
