@@ -79,6 +79,11 @@ export default function SessionList({ sessions, onDelete }: Props) {
               <span className="text-xs text-neutral-500">
                 {session.durationMinutes}min
               </span>
+              {session.source === 'utr' && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-900/50 text-yellow-400">
+                  UTR
+                </span>
+              )}
             </div>
             <button
               onClick={() => handleDelete(session.id)}

@@ -1,12 +1,38 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { TennisSession } from '@/lib/types';
+import { getUtrPlayerId } from '@/lib/storage';
+
+interface UtrProfile {
+  singlesUtr: number;
+  doublesUtr: number;
+  firstName: string;
+  lastName: string;
+}
 
 interface Props {
   sessions: TennisSession[];
 }
 
 export default function StatsView({ sessions }: Props) {
+  const [utrProfile, setUtrProfile] = useState<UtrProfile | null>(null);
+
+  useEffect(() => {
+    const playerId = getUtrPlayerId();
+    if (!playerId) return;
+
+    fetch('/api/utr/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setUtrProfile(data);
+      })
+      .catch(() => {});
+  }, []);
   const matches = sessions.filter((s) => s.type === 'match');
   const practices = sessions.filter((s) => s.type === 'practice');
 
@@ -87,6 +113,33 @@ export default function StatsView({ sessions }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* UTR Ratings */}
+      {utrProfile && (utrProfile.singlesUtr > 0 || utrProfile.doublesUtr > 0) && (
+        <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+          <h3 className="text-xs text-neutral-400 uppercase tracking-wide mb-3">
+            UTR Rating
+          </h3>
+          <div className="flex items-center gap-6">
+            {utrProfile.singlesUtr > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">
+                  {utrProfile.singlesUtr.toFixed(2)}
+                </div>
+                <div className="text-xs text-neutral-500">Singles</div>
+              </div>
+            )}
+            {utrProfile.doublesUtr > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">
+                  {utrProfile.doublesUtr.toFixed(2)}
+                </div>
+                <div className="text-xs text-neutral-500">Doubles</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Overall Record */}
       <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
         <h3 className="text-xs text-neutral-400 uppercase tracking-wide mb-3">

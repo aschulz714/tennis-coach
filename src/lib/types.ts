@@ -35,6 +35,10 @@ export interface TennisSession {
   team?: Team;
   matchFormat?: MatchFormat;
 
+  // UTR import tracking
+  source?: 'manual' | 'utr';
+  utrMatchId?: string;
+
   createdAt: string;
 }
 
