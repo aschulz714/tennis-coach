@@ -107,20 +107,20 @@ export default function Schedule() {
             }`}
           >
             {/* Top row: date + countdown */}
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-1.5 gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <span
-                  className={`text-sm font-medium ${
+                  className={`text-sm font-medium shrink-0 ${
                     isPast ? 'text-neutral-500' : 'text-neutral-200'
                   }`}
                 >
                   {formatDate(match.date)}
                 </span>
-                <span className="text-xs text-neutral-500">{match.time}</span>
+                <span className="text-xs text-neutral-500 shrink-0">{match.time}</span>
               </div>
               {!isPast && (
                 <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${
                     isNextUp
                       ? 'bg-green-600 text-white'
                       : 'bg-neutral-700 text-neutral-300'
@@ -132,10 +132,10 @@ export default function Schedule() {
               )}
             </div>
 
-            {/* Team badge + opponent */}
-            <div className="flex items-center gap-2 mb-1">
+            {/* Team badge + home/away */}
+            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
               <span
-                className={`px-2 py-0.5 rounded text-xs font-medium ${
+                className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                   isVerma
                     ? 'bg-blue-900 text-blue-300'
                     : 'bg-purple-900 text-purple-300'
@@ -154,18 +154,17 @@ export default function Schedule() {
               </span>
             </div>
 
-            {/* Opponent + venue */}
-            <div className="flex items-center justify-between">
-              <span
-                className={`text-sm ${
-                  isPast ? 'text-neutral-500' : 'text-neutral-300'
-                }`}
-              >
-                vs {match.opponent}
-              </span>
-              <span className="text-xs text-neutral-500 truncate ml-2">
-                {match.venue}
-              </span>
+            {/* Opponent */}
+            <div
+              className={`text-sm ${
+                isPast ? 'text-neutral-500' : 'text-neutral-300'
+              }`}
+            >
+              vs {match.opponent}
+            </div>
+            {/* Venue */}
+            <div className="text-xs text-neutral-500 truncate mt-0.5">
+              {match.venue}
             </div>
           </div>
         );

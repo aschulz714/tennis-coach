@@ -120,7 +120,7 @@ export default function SessionForm({ onSaved }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       {/* Session Type Toggle */}
       <div className="flex rounded-lg overflow-hidden border border-neutral-700">
         <button
@@ -148,14 +148,14 @@ export default function SessionForm({ onSaved }: Props) {
       </div>
 
       {/* Date & Duration */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-xs text-neutral-400 mb-1">Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 text-sm"
           />
         </div>
         <div>
@@ -167,7 +167,7 @@ export default function SessionForm({ onSaved }: Props) {
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
             min={1}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 text-sm"
           />
         </div>
       </div>
@@ -199,14 +199,14 @@ export default function SessionForm({ onSaved }: Props) {
       {type === 'match' && (
         <>
           {/* Match Format + Team */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-xs text-neutral-400 mb-1">Format</label>
               <div className="flex rounded-lg overflow-hidden border border-neutral-700">
                 <button
                   type="button"
                   onClick={() => setMatchFormat('Doubles')}
-                  className={`flex-1 py-2 text-xs font-medium ${
+                  className={`flex-1 py-1.5 text-xs font-medium ${
                     matchFormat === 'Doubles'
                       ? 'bg-green-600 text-white'
                       : 'bg-neutral-800 text-neutral-400'
@@ -217,7 +217,7 @@ export default function SessionForm({ onSaved }: Props) {
                 <button
                   type="button"
                   onClick={() => setMatchFormat('Singles')}
-                  className={`flex-1 py-2 text-xs font-medium ${
+                  className={`flex-1 py-1.5 text-xs font-medium ${
                     matchFormat === 'Singles'
                       ? 'bg-green-600 text-white'
                       : 'bg-neutral-800 text-neutral-400'
@@ -232,7 +232,7 @@ export default function SessionForm({ onSaved }: Props) {
               <select
                 value={team}
                 onChange={(e) => setTeam(e.target.value as Team)}
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm"
               >
                 {TEAMS.map((t) => (
                   <option key={t} value={t}>
@@ -246,13 +246,13 @@ export default function SessionForm({ onSaved }: Props) {
           {/* Surface */}
           <div>
             <label className="block text-xs text-neutral-400 mb-1">Surface</label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {SURFACES.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSurface(s)}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition ${
+                  className={`py-1.5 text-xs font-medium rounded-lg transition ${
                     surface === s
                       ? 'bg-green-600 text-white'
                       : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
@@ -294,64 +294,72 @@ export default function SessionForm({ onSaved }: Props) {
 
           {/* Per-Set Scores */}
           <div>
-            <label className="block text-xs text-neutral-400 mb-2">Score</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-neutral-400">Score</label>
+              <div className="flex gap-6 text-[10px] text-neutral-500 pr-1">
+                <span>You</span>
+                <span>Opp</span>
+              </div>
+            </div>
             <div className="space-y-2">
               {[0, 1].map((setIdx) => (
                 <div key={setIdx} className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-500 w-10">
+                  <span className="text-xs text-neutral-500 w-8 shrink-0">
                     Set {setIdx + 1}
                   </span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     min={0}
                     max={7}
                     value={sets[setIdx]?.yours ?? 0}
                     onChange={(e) =>
                       updateSet(setIdx, 'yours', Number(e.target.value))
                     }
-                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
-                    placeholder="You"
+                    className="w-12 shrink-0 bg-neutral-800 border border-neutral-700 rounded-lg px-1 py-1.5 text-sm text-center"
                   />
-                  <span className="text-neutral-500 text-xs">-</span>
+                  <span className="text-neutral-500 text-xs shrink-0">-</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     min={0}
                     max={7}
                     value={sets[setIdx]?.opponent ?? 0}
                     onChange={(e) =>
                       updateSet(setIdx, 'opponent', Number(e.target.value))
                     }
-                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
-                    placeholder="Opp"
+                    className="w-12 shrink-0 bg-neutral-800 border border-neutral-700 rounded-lg px-1 py-1.5 text-sm text-center"
                   />
                 </div>
               ))}
 
               {showSet3 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-500 w-10">TB</span>
+                  <span className="text-xs text-neutral-500 w-8 shrink-0">TB</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     min={0}
                     max={15}
                     value={sets[2]?.yours ?? 0}
                     onChange={(e) =>
                       updateSet(2, 'yours', Number(e.target.value))
                     }
-                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                    className="w-12 shrink-0 bg-neutral-800 border border-neutral-700 rounded-lg px-1 py-1.5 text-sm text-center"
                   />
-                  <span className="text-neutral-500 text-xs">-</span>
+                  <span className="text-neutral-500 text-xs shrink-0">-</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     min={0}
                     max={15}
                     value={sets[2]?.opponent ?? 0}
                     onChange={(e) =>
                       updateSet(2, 'opponent', Number(e.target.value))
                     }
-                    className="w-14 bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-1.5 text-sm text-center"
+                    className="w-12 shrink-0 bg-neutral-800 border border-neutral-700 rounded-lg px-1 py-1.5 text-sm text-center"
                   />
-                  <span className="text-xs text-neutral-600">(to 10)</span>
+                  <span className="text-[10px] text-neutral-600 shrink-0">(to 10)</span>
                 </div>
               )}
 
