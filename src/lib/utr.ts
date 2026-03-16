@@ -1,18 +1,15 @@
 /**
  * Server-side UTR API helper.
  *
- * Authenticates against the UTR API and provides functions for
- * searching players, fetching profiles, results, and stats.
- *
- * API base URL: The community docs reference both app.universaltennis.com/api/v1
- * and api.universaltennis.com/v2. We use the v1 path via app.universaltennis.com
- * as that appears to be the most reliable based on community usage.
+ * UTR migrated from universaltennis.com to utrsports.net (2025).
+ * The v2 search endpoint works without auth for public player data.
+ * Profile/results/stats endpoints require authentication.
  *
  * Auth: POST login returns a JWT. We cache it in memory with a 55-minute expiry
  * (UTR tokens typically last 1 hour).
  */
 
-const BASE_URL = 'https://app.universaltennis.com/api/v1';
+const BASE_URL = 'https://api.utrsports.net/v2';
 
 const COMMON_HEADERS: Record<string, string> = {
   'Content-Type': 'application/json',
@@ -35,6 +32,7 @@ function getCredentials(): { email: string; password: string } {
 async function authenticate(): Promise<string> {
   const { email, password } = getCredentials();
 
+  // Auth endpoint may be at a different path on the new domain
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: COMMON_HEADERS,
@@ -123,13 +121,26 @@ export interface UtrPlayerSearchResult {
   location: string;
 }
 
+/**
+ * Search players — works WITHOUT auth on the v2 endpoint.
+ * No UTR credentials needed for this.
+ */
 export async function searchPlayers(query: string): Promise<UtrPlayerSearchResult[]> {
-  const data = await utrFetch(
-    `/search/players?query=${encodeURIComponent(query)}&top=10`
-  );
+  const url = `${BASE_URL}/search/players?query=${encodeURIComponent(query)}&top=10`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'User-Agent': 'TennisCoach/1.0' },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`UTR search failed (${res.status}): ${text}`);
+  }
+
+  const data = await res.json();
 
   // The search endpoint may return results under different keys.
-  // Try common shapes: { hits }, { players }, or the array directly.
   const raw = data as Record<string, unknown>;
   let players: Record<string, unknown>[] = [];
 
